@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<body>
+<div th:replace="~{layout :: content(~{::section})}">
+    <section>
+        <div class="content-header mb-3">
+            <div>
+                <div class="content-title">Traffic Record Detail</div>
+                <div class="content-subtitle">
+                    Detailed view of a single network flow record.
+                </div>
+            </div>
+            <div>
+                <a th:href="@{/traffic/history}" class="btn btn-sm btn-outline-light">
+                    ← Back to history
+                </a>
+            </div>
+        </div>
+
+        <div class="card bg-transparent border-0">
+            <div class="card-body p-4"
+                 style="background-color:#111827;border-radius:0.75rem;border:1px solid rgba(148,163,184,0.4);">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div>
+                        <div class="fw-semibold">
+                            <span th:text="${traffic.srcIp}">10.0.0.1</span>
+                            →
+                            <span th:text="${traffic.dstIp}">10.0.0.2</span>
+                        </div>
+                        <div class="text-muted" th:text="${traffic.timestamp}">2024-01-01T00:00:00</div>
+                    </div>
+                    <div>
+                        <span class="badge"
+                              th:classappend="${traffic.processed} ? 'bg-success' : 'bg-danger'">
+                            <span th:text="${traffic.processed} ? 'Processed' : 'Unprocessed'">Processed</span>
+                        </span>
+                    </div>
+                </div>
+
+                <dl class="row mb-0">
+                    <dt class="col-sm-3">Protocol</dt>
+                    <dd class="col-sm-9" th:text="${traffic.protocol}">TCP</dd>
+
+                    <dt class="col-sm-3">Packet size</dt>
+                    <dd class="col-sm-9" th:text="${traffic.packetSize}">0</dd>
+
+                    <dt class="col-sm-3">Packet count</dt>
+                    <dd class="col-sm-9" th:text="${traffic.packetCount}">0</dd>
+
+                    <dt class="col-sm-3">Duration (ms)</dt>
+                    <dd class="col-sm-9" th:text="${traffic.durationMs}">0</dd>
+
+                    <dt class="col-sm-3">Slice type</dt>
+                    <dd class="col-sm-9" th:text="${traffic.sliceType}">eMBB</dd>
+
+                    <dt class="col-sm-3">Upload source</dt>
+                    <dd class="col-sm-9" th:text="${traffic.uploadSource}">file.csv</dd>
+                </dl>
+            </div>
+        </div>
+    </section>
+</div>
+</body>
+</html>
+

@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<body>
+<div th:replace="~{layout :: content(~{::section})}">
+    <section>
+        <div class="content-header mb-3">
+            <div>
+                <div class="content-title">Traffic Records</div>
+                <div class="content-subtitle">
+                    Records for source <span th:text="${source}">file.csv</span>
+                </div>
+            </div>
+            <div>
+                <a th:href="@{/traffic/history}" class="btn btn-sm btn-outline-light">
+                    ← Back to history
+                </a>
+            </div>
+        </div>
+
+        <div th:if="${#lists.isEmpty(records)}">
+            <div class="alert alert-secondary" role="alert">
+                No records found for this source.
+            </div>
+        </div>
+
+        <div th:if="${!#lists.isEmpty(records)}" class="table-responsive">
+            <table class="table table-dark table-striped align-middle">
+                <thead class="table-dark">
+                <tr>
+                    <th scope="col">Timestamp</th>
+                    <th scope="col">Source IP</th>
+                    <th scope="col">Destination IP</th>
+                    <th scope="col">Protocol</th>
+                    <th scope="col">Packets</th>
+                    <th scope="col">Duration (ms)</th>
+                    <th scope="col" class="text-end">Detail</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="t : ${records}">
+                    <td th:text="${t.timestamp}">2024-01-01T00:00:00</td>
+                    <td th:text="${t.srcIp}">10.0.0.1</td>
+                    <td th:text="${t.dstIp}">10.0.0.2</td>
+                    <td th:text="${t.protocol}">TCP</td>
+                    <td th:text="${t.packetCount}">10</td>
+                    <td th:text="${t.durationMs}">100</td>
+                    <td class="text-end">
+                        <a th:href="@{'/traffic/' + ${t.id}}"
+                           class="btn btn-sm btn-outline-light">View</a>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+</div>
+</body>
+</html>
+

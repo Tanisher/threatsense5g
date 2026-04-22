@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layout}">
+<head>
+    <title>Reports – ThreatSense5G</title>
+</head>
+<body>
+<div layout:fragment="content">
+    <div class="page-header">
+        <h1>Reports</h1>
+        <p class="text-muted mb-0">Generate and download PDF threat reports.</p>
+    </div>
+
+    <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+    <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+
+    <div class="card mb-4">
+        <div class="card-header">Generate report</div>
+        <div class="card-body">
+            <form class="row g-3 align-items-end" th:action="@{/reports/generate}" method="post">
+                <div class="col-auto">
+                    <label class="form-label">From</label>
+                    <input type="date" class="form-control" name="from" required>
+                </div>
+                <div class="col-auto">
+                    <label class="form-label">To</label>
+                    <input type="date" class="form-control" name="to" required>
+                </div>
+                <div class="col-auto">
+                    <button type="submit" class="btn btn-primary">Generate PDF</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">Existing reports</div>
+        <div class="card-body">
+            <div th:if="${#lists.isEmpty(reports)}" class="text-muted py-4">No reports yet. Use the form above to generate one.</div>
+            <div th:if="${!#lists.isEmpty(reports)}" class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead>
+                    <tr>
+                        <th>Filename</th>
+                        <th>Date range</th>
+                        <th class="text-end"></th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="name : ${reports}">
+                        <td th:text="${name}">report_2024-01-01_2024-01-31_123.pdf</td>
+                        <td>
+                            <span th:with="parts=${#strings.split(name, '_')}" th:if="${#lists.size(parts) >= 3}" th:text="${parts[1] + ' to ' + parts[2]}">—</span>
+                        </td>
+                        <td class="text-end">
+                            <a th:href="@{/reports/download/{fn}(fn=${name})}" class="btn btn-primary btn-sm" download>Download</a>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

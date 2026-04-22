@@ -1,0 +1,11 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<div th:fragment="severityBadge(severity)">
+    <span class="badge"
+          th:classappend="${(severity != null and severity.toString() == 'CRITICAL') ? 'bg-danger' : (severity != null and severity.toString() == 'HIGH') ? 'bg-warning text-dark' : (severity != null and severity.toString() == 'MEDIUM') ? 'bg-secondary' : 'bg-success'}">
+        <span th:text="${severity != null ? severity.toString() : 'LOW'}">LOW</span>
+    </span>
+</div>
+</body>
+</html>

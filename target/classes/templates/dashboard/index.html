@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layout}">
+<head>
+    <title>Dashboard – ThreatSense5G</title>
+</head>
+<body>
+<div layout:fragment="content">
+    <div class="page-header">
+        <h1>Dashboard</h1>
+        <p class="text-muted mb-0">Overview of traffic, threats, and alerts.</p>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="stat-card blue">
+                <div class="d-flex align-items-center">
+                    <span class="stat-icon me-2">📊</span>
+                    <div>
+                        <div class="stat-value" th:text="${totalTrafficRecords}">0</div>
+                        <div class="stat-label">Total Traffic Analysed</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card orange">
+                <div class="d-flex align-items-center">
+                    <span class="stat-icon me-2">⚠</span>
+                    <div>
+                        <div class="stat-value" th:text="${threatsToday}">0</div>
+                        <div class="stat-label">Threats Detected Today</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card red">
+                <div class="d-flex align-items-center">
+                    <span class="stat-icon me-2">🔔</span>
+                    <div>
+                        <div class="stat-value" th:text="${openAlertsCount}">0</div>
+                        <div class="stat-label">Open Alerts</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card dark-red">
+                <div class="d-flex align-items-center">
+                    <span class="stat-icon me-2">🔥</span>
+                    <div>
+                        <div class="stat-value" th:text="${criticalAlertsToday}">0</div>
+                        <div class="stat-label">Critical Alerts Today</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">Threats Over Last 7 Days</div>
+                <div class="card-body">
+                    <div class="chart-container" style="position:relative; height:280px;">
+                        <canvas id="threatsChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">Attack Type Distribution</div>
+                <div class="card-body">
+                    <div class="chart-container" style="position:relative; height:280px;">
+                        <canvas id="attackChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">Quick Actions</div>
+                <div class="card-body">
+                    <div class="d-flex flex-wrap gap-2">
+                        <a th:href="@{/traffic/upload}" class="btn btn-primary"><i class="bi bi-upload me-2"></i>Upload Traffic Data</a>
+                        <a th:href="@{/alerts}" class="btn btn-primary"><i class="bi bi-bell me-2"></i>View All Alerts</a>
+                        <a th:href="@{/threats}" class="btn btn-primary"><i class="bi bi-shield-exclamation me-2"></i>View All Threats</a>
+                        <a th:href="@{/reports}" class="btn btn-primary"><i class="bi bi-file-text me-2"></i>Generate Report</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="slice-card">
+                <span class="indicator" th:classappend="${sliceHealthEmbb == 0} ? 'green' : (${sliceHealthEmbb < 5} ? 'yellow' : 'red')"></span>
+                <strong>eMBB</strong>
+                <span th:text="${sliceHealthEmbb} + ' threats'">0 threats</span>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="slice-card">
+                <span class="indicator" th:classappend="${sliceHealthUrllc == 0} ? 'green' : (${sliceHealthUrllc < 5} ? 'yellow' : 'red')"></span>
+                <strong>URLLC</strong>
+                <span th:text="${sliceHealthUrllc} + ' threats'">0 threats</span>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="slice-card">
+                <span class="indicator" th:classappend="${sliceHealthMmtc == 0} ? 'green' : (${sliceHealthMmtc < 5} ? 'yellow' : 'red')"></span>
+                <strong>mMTC</strong>
+                <span th:text="${sliceHealthMmtc} + ' threats'">0 threats</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">Top 10 Source IPs</div>
+                <div class="card-body">
+                    <table class="table table-sm mb-0">
+                        <thead><tr><th>#</th><th>IP Address</th><th class="text-end">Count</th></tr></thead>
+                        <tbody>
+                        <tr th:each="row, stat : ${topSourceIps}">
+                            <td th:text="${stat.count}">1</td>
+                            <td th:text="${row[0]}">0.0.0.0</td>
+                            <td class="text-end" th:text="${row[1]}">0</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                    <p th:if="${#lists.isEmpty(topSourceIps)}" class="text-muted small mb-0 mt-2">No traffic data yet.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">Recent Threats</div>
+                <div class="card-body">
+                    <div th:each="t : ${recentThreats}" class="d-flex justify-content-between align-items-center py-2 border-bottom border-light">
+                        <span th:replace="~{dashboard/fragments :: severityBadge(t.severity)}"></span>
+                        <span class="ms-2" th:text="${t.threatType}">DDOS</span>
+                        <span class="text-muted small ms-2" th:text="${t.traffic != null ? t.traffic.srcIp : '-'}">—</span>
+                        <span class="small text-muted" th:text="${t.detectedAt != null ? #temporals.format(t.detectedAt, 'MMM dd HH:mm') : '-'}">—</span>
+                    </div>
+                    <p th:if="${#lists.isEmpty(recentThreats)}" class="text-muted small mb-0">No threats detected yet.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        (function () {
+            var labels = /*[[${last7DaysLabels}]]*/ [];
+            var counts = /*[[${last7DaysCounts}]]*/ [];
+            var countNormal = /*[[${countNormal}]]*/ 0;
+            var countDdos = /*[[${countDdos}]]*/ 0;
+            var countIntrusion = /*[[${countIntrusion}]]*/ 0;
+            var countAnomaly = /*[[${countAnomaly}]]*/ 0;
+            if (typeof labels === 'string') labels = [];
+            if (!Array.isArray(labels)) labels = [];
+            if (!Array.isArray(counts)) counts = [];
+            var countNumbers = [
+                Number(countNormal) || 0,
+                Number(countDdos) || 0,
+                Number(countIntrusion) || 0,
+                Number(countAnomaly) || 0
+            ];
+            function initCharts() {
+                if (typeof Chart === 'undefined') return;
+                var threatsEl = document.getElementById('threatsChart');
+                if (threatsEl) {
+                    var ctx = threatsEl.getContext('2d');
+                    if (ctx) {
+                        var grad = ctx.createLinearGradient(0, 0, 0, 280);
+                        grad.addColorStop(0, 'rgba(233, 69, 96, 0.6)');
+                        grad.addColorStop(1, 'rgba(233, 69, 96, 0)');
+                        new Chart(threatsEl, {
+                            type: 'line',
+                            data: {
+                                labels: labels,
+                                datasets: [{
+                                    label: 'Threats',
+                                    data: counts.map(function (n) { return Number(n) || 0; }),
+                                    fill: true,
+                                    backgroundColor: grad,
+                                    borderColor: '#e94560',
+                                    tension: 0.35,
+                                    pointRadius: 4
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                plugins: { legend: { display: false } },
+                                scales: {
+                                    x: { ticks: { color: '#6c757d', maxRotation: 45 }, grid: { color: 'rgba(0,0,0,0.08)' } },
+                                    y: { beginAtZero: true, ticks: { color: '#6c757d' }, grid: { color: 'rgba(0,0,0,0.08)' } }
+                                }
+                            }
+                        });
+                    }
+                }
+                var attackEl = document.getElementById('attackChart');
+                if (attackEl && attackEl.getContext('2d')) {
+                    new Chart(attackEl, {
+                        type: 'doughnut',
+                        data: {
+                            labels: ['NORMAL', 'DDOS', 'INTRUSION', 'ANOMALY'],
+                            datasets: [{
+                                data: countNumbers,
+                                backgroundColor: ['#2ecc71', '#e94560', '#f39c12', '#3498db']
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: { legend: { position: 'bottom', labels: { color: '#212529', padding: 12 } } }
+                        }
+                    });
+                }
+            }
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', initCharts);
+            } else {
+                initCharts();
+            }
+        })();
+        /*]]>*/
+    </script>
+</div>
+</body>
+</html>

@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layout}">
+<head>
+    <title>Alert Management – ThreatSense5G</title>
+</head>
+<body>
+<div layout:fragment="content">
+    <div class="page-header d-flex justify-content-between align-items-start flex-wrap gap-2">
+        <div>
+            <h1>Alert Management</h1>
+            <p class="text-muted mb-0">Review and triage detected threats across your 5G network.</p>
+        </div>
+        <a th:href="@{/alerts/export}" class="btn btn-primary">Export CSV</a>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-header">Filters</div>
+        <div class="card-body">
+            <form class="row g-2" th:action="@{/alerts}" method="get">
+                <div class="col-md-2">
+                    <label class="form-label">Status</label>
+                    <select class="form-select" name="status">
+                        <option value="">All</option>
+                        <option th:each="s : ${statuses}" th:value="${s.name()}" th:text="${s.name()}" th:selected="${filterStatus == s.name()}"></option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Severity</label>
+                    <select class="form-select" name="severity">
+                        <option value="">All</option>
+                        <option th:each="sev : ${severities}" th:value="${sev.name()}" th:text="${sev.name()}" th:selected="${filterSeverity == sev.name()}"></option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">From</label>
+                    <input type="date" class="form-control" name="from" th:value="${filterFrom}">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">To</label>
+                    <input type="date" class="form-control" name="to" th:value="${filterTo}">
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary w-100">Apply</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <p class="text-muted" th:text="'Total alerts: ' + ${totalCount}">Total alerts: 0</p>
+
+    <div th:if="${#lists.isEmpty(alerts)}" class="alert alert-secondary">No alerts match the current filters.</div>
+
+    <div th:if="${!#lists.isEmpty(alerts)}" class="card">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Threat Type</th>
+                        <th>Severity</th>
+                        <th>Status</th>
+                        <th>Assigned To</th>
+                        <th>Created At</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="alert : ${alerts}" th:attr="data-href=@{'/alerts/' + alert.id}" onclick="window.location.href=this.getAttribute('data-href')">
+                        <td th:text="${alert.id}">1</td>
+                        <td th:text="${alert.detection != null ? alert.detection.threatType : '-'}">—</td>
+                        <td>
+                            <span class="badge" th:classappend="${alert.detection != null && alert.detection.severity.name() == 'CRITICAL'} ? 'badge-critical' : (${alert.detection != null && alert.detection.severity.name() == 'HIGH'} ? 'badge-high' : (${alert.detection != null && alert.detection.severity.name() == 'MEDIUM'} ? 'badge-medium' : 'badge-low'))" th:text="${alert.detection != null ? alert.detection.severity.name() : 'LOW'}">—</span>
+                        </td>
+                        <td>
+                            <span class="badge bg-secondary" th:text="${alert.status.name()}">OPEN</span>
+                        </td>
+                        <td th:text="${alert.assignedTo != null ? alert.assignedTo.username : 'Unassigned'}">—</td>
+                        <td th:text="${alert.createdAt != null ? #temporals.format(alert.createdAt, 'yyyy-MM-dd HH:mm') : '-'}">—</td>
+                        <td class="text-end" onclick="event.stopPropagation()">
+                            <a th:href="@{/alerts/{id}(id=${alert.id})}" class="btn btn-primary btn-sm">View</a>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

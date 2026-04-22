@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layout}">
+<head>
+    <title>User Management – ThreatSense5G</title>
+</head>
+<body>
+<div layout:fragment="content">
+    <div class="page-header d-flex justify-content-between align-items-start flex-wrap gap-2">
+        <div>
+            <h1>User Management</h1>
+            <p class="text-muted mb-0">Manage users and roles.</p>
+        </div>
+        <a th:href="@{/admin/users/new}" class="btn btn-primary">Create New User</a>
+    </div>
+
+    <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+    <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+
+    <div class="card">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead>
+                    <tr>
+                        <th>Username</th>
+                        <th>Email</th>
+                        <th>Role</th>
+                        <th>Status</th>
+                        <th>Created</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="u : ${users}">
+                        <td th:text="${u.username}">user</td>
+                        <td th:text="${u.email}">user@example.com</td>
+                        <td th:text="${u.role}">ROLE</td>
+                        <td>
+                            <span th:if="${u.active}" class="badge bg-success">Active</span>
+                            <span th:unless="${u.active}" class="badge bg-secondary">Inactive</span>
+                        </td>
+                        <td th:text="${u.createdAt != null ? #temporals.format(u.createdAt, 'yyyy-MM-dd') : '—'}">—</td>
+                        <td class="text-end">
+                            <form th:action="@{/admin/users/{id}/toggle-active(id=${u.id})}" method="post" class="d-inline" onsubmit="return confirm('Toggle active status for this user?');">
+                                <button type="submit" class="btn btn-primary btn-sm" th:text="${u.active} ? 'Deactivate' : 'Activate'">Toggle</button>
+                            </form>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

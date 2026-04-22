@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layout}">
+<head>
+    <title>Threat Detections – ThreatSense5G</title>
+</head>
+<body>
+<div layout:fragment="content">
+    <div class="page-header">
+        <h1>Threat Detections</h1>
+        <p class="text-muted mb-0">Browse and filter detected threats.</p>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-header">Filters</div>
+        <div class="card-body">
+            <form class="row g-2" th:action="@{/threats}" method="get">
+                <div class="col-md-2">
+                    <label class="form-label">Threat type</label>
+                    <select class="form-select" name="threatType">
+                        <option th:each="tt : ${threatTypes}" th:value="${tt}" th:text="${tt}" th:selected="${filterThreatType == tt}"></option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Severity</label>
+                    <select class="form-select" name="severity">
+                        <option value="">All</option>
+                        <option th:each="s : ${severities}" th:value="${s.name()}" th:text="${s.name()}" th:selected="${filterSeverity == s.name()}"></option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">From</label>
+                    <input type="date" class="form-control" name="dateFrom" th:value="${filterDateFrom}">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">To</label>
+                    <input type="date" class="form-control" name="dateTo" th:value="${filterDateTo}">
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary w-100">Apply</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <p class="text-muted" th:text="'Total: ' + ${totalCount} + ' threat(s)'">Total: 0</p>
+
+    <div class="card">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Threat type</th>
+                        <th>Severity</th>
+                        <th>Confidence %</th>
+                        <th>Source IP</th>
+                        <th>Protocol</th>
+                        <th>Detected at</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="t : ${threatPage.content}" th:attr="data-href=@{'/threats/' + t.id}" onclick="window.location.href=this.getAttribute('data-href')">
+                        <td th:text="${t.id}">1</td>
+                        <td th:text="${t.threatType != null ? t.threatType : '—'}">—</td>
+                        <td>
+                            <span class="badge" th:classappend="${t.severity != null && t.severity.name() == 'CRITICAL'} ? 'badge-critical' : (${t.severity != null && t.severity.name() == 'HIGH'} ? 'badge-high' : (${t.severity != null && t.severity.name() == 'MEDIUM'} ? 'badge-medium' : 'badge-low'))" th:text="${t.severity != null ? t.severity.name() : 'LOW'}">—</span>
+                        </td>
+                        <td th:text="${t.confidenceScore != null ? #numbers.formatDecimal(t.confidenceScore, 1, 2) + '%' : '—'}">—</td>
+                        <td th:text="${t.traffic != null ? t.traffic.srcIp : '—'}">—</td>
+                        <td th:text="${t.traffic != null ? t.traffic.protocol : '—'}">—</td>
+                        <td th:text="${t.detectedAt != null ? #temporals.format(t.detectedAt, 'yyyy-MM-dd HH:mm') : '—'}">—</td>
+                        <td class="text-end" onclick="event.stopPropagation()">
+                            <a th:href="@{/threats/{id}(id=${t.id})}" class="btn btn-primary btn-sm">View</a>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div th:if="${threatPage.empty}" class="text-muted py-4">No threats match the filters.</div>
+
+    <nav th:if="${threatPage.totalPages > 1}" class="mt-3">
+        <ul class="pagination">
+            <li class="page-item" th:classappend="${!threatPage.hasPrevious()} ? 'disabled'">
+                <a class="page-link" th:href="@{/threats(threatType=${filterThreatType}, severity=${filterSeverity}, dateFrom=${filterDateFrom}, dateTo=${filterDateTo}, page=${threatPage.number - 1})}">Previous</a>
+            </li>
+            <li class="page-item disabled"><span class="page-link" th:text="${threatPage.number + 1} + ' / ' + ${threatPage.totalPages}">1 / 1</span></li>
+            <li class="page-item" th:classappend="${!threatPage.hasNext()} ? 'disabled'">
+                <a class="page-link" th:href="@{/threats(threatType=${filterThreatType}, severity=${filterSeverity}, dateFrom=${filterDateFrom}, dateTo=${filterDateTo}, page=${threatPage.number + 1})}">Next</a>
+            </li>
+        </ul>
+    </nav>
+</div>
+</body>
+</html>

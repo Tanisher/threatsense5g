@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layout}">
+<head>
+    <title>Traffic History – ThreatSense5G</title>
+</head>
+<body>
+<div layout:fragment="content">
+    <div class="page-header">
+        <h1>Traffic Upload History</h1>
+        <p class="text-muted mb-0">Overview of previously ingested traffic CSV files.</p>
+    </div>
+
+    <div th:if="${#lists.isEmpty(history)}" class="alert alert-secondary">No traffic uploads have been ingested yet.</div>
+
+    <div th:if="${!#lists.isEmpty(history)}" class="card">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead>
+                    <tr>
+                        <th>Filename</th>
+                        <th>Row count</th>
+                        <th>First timestamp</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="item : ${history}" th:attr="data-href=@{'/traffic?source=' + item.uploadSource}" onclick="window.location.href=this.getAttribute('data-href')">
+                        <td th:text="${item.uploadSource}">filename.csv</td>
+                        <td th:text="${item.rowCount}">0</td>
+                        <td th:text="${item.earliestTimestamp}">—</td>
+                        <td class="text-end" onclick="event.stopPropagation()">
+                            <a class="btn btn-primary btn-sm" th:href="@{/traffic(source=${item.uploadSource})}">View Records</a>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

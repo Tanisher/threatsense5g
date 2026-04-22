@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:text="'Alert #' + (alert != null ? alert.id : '?') + ' – ThreatSense5G'">Alert – ThreatSense5G</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <style>
+        * { box-sizing: border-box; }
+        body { margin: 0; font-family: Arial, sans-serif; background: #f8f9fa; color: #212529; display: flex; flex-direction: column; min-height: 100vh; }
+        .navbar { background: #1a1a2e !important; padding: 0.75rem 1.5rem; display: flex; align-items: center; justify-content: space-between; }
+        .navbar-brand { color: #e94560 !important; font-size: 1.4rem; font-weight: bold; text-decoration: none; }
+        .navbar-user a { color: #fff; text-decoration: none; }
+        .wrapper { display: flex; flex: 1; }
+        .sidebar { width: 240px; min-height: calc(100vh - 56px); background: #1a1a2e; padding: 1rem 0; flex-shrink: 0; }
+        .sidebar a { display: flex; align-items: center; gap: 0.75rem; color: #adb5bd; text-decoration: none; padding: 0.75rem 1.5rem; border-left: 3px solid transparent; }
+        .sidebar a:hover, .sidebar a.active { color: #fff; background: rgba(233,69,96,0.2); border-left-color: #e94560; }
+        .sidebar .nav-section { color: #6c757d; font-size: 0.75rem; text-transform: uppercase; padding: 1rem 1.5rem 0.25rem; }
+        .main-content { flex: 1; padding: 2rem; overflow-y: auto; }
+        .page-header { margin-bottom: 1.5rem; border-bottom: 2px solid #e94560; padding-bottom: 0.75rem; }
+        .page-header h1 { font-size: 1.75rem; font-weight: 700; color: #1a1a2e; margin: 0; }
+        .card { background: #fff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); border: none; margin-bottom: 1.5rem; }
+        .card-header { background: #f8f9fa; border-bottom: 1px solid #dee2e6; padding: 1rem 1.5rem; font-weight: 600; border-radius: 8px 8px 0 0; }
+        .card-body { padding: 1.5rem; }
+        .btn-primary { background: #e94560; border-color: #e94560; color: #fff; }
+        .btn-primary:hover { background: #c73652; border-color: #c73652; color: #fff; }
+        .badge-critical { background: #dc3545; color: white; padding: 0.3rem 0.6rem; border-radius: 4px; font-size: 0.75rem; }
+        .badge-high { background: #fd7e14; color: white; padding: 0.3rem 0.6rem; border-radius: 4px; font-size: 0.75rem; }
+        .badge-medium { background: #ffc107; color: #212529; padding: 0.3rem 0.6rem; border-radius: 4px; font-size: 0.75rem; }
+        .badge-low { background: #28a745; color: white; padding: 0.3rem 0.6rem; border-radius: 4px; font-size: 0.75rem; }
+        .form-control, .form-select { background: #fff !important; color: #212529 !important; border: 1px solid #ced4da; border-radius: 4px; }
+    </style>
+</head>
+<body>
+<nav class="navbar">
+    <a class="navbar-brand" th:href="@{/dashboard}"><i class="bi bi-shield-fill-exclamation"></i> ThreatSense5G</a>
+    <div class="navbar-user">
+        <span th:if="${currentUsername}"><i class="bi bi-person-circle"></i> <span th:text="${currentUsername}">User</span></span>
+        <a th:if="${currentUsername}" th:href="@{/logout}"><i class="bi bi-box-arrow-right"></i> Logout</a>
+    </div>
+</nav>
+<div class="wrapper">
+    <aside class="sidebar">
+        <span class="nav-section">Main</span>
+        <a th:href="@{/dashboard}" th:classappend="${#strings.startsWith(currentPath,'/dashboard')} ? 'active' : ''"><i class="bi bi-grid"></i> Dashboard</a>
+        <span class="nav-section">Traffic</span>
+        <a th:href="@{/traffic/upload}"><i class="bi bi-upload"></i> Upload Traffic</a>
+        <a th:href="@{/traffic/history}"><i class="bi bi-clock-history"></i> Traffic History</a>
+        <span class="nav-section">Security</span>
+        <a th:href="@{/threats}"><i class="bi bi-shield-exclamation"></i> Threats</a>
+        <a th:href="@{/alerts}" th:classappend="${#strings.startsWith(currentPath,'/alerts')} ? 'active' : ''"><i class="bi bi-bell"></i> Alerts</a>
+        <span class="nav-section">Reports</span>
+        <a th:href="@{/reports}"><i class="bi bi-file-text"></i> Reports</a>
+        <div th:if="${isSuperAdmin}">
+            <span class="nav-section">Admin</span>
+            <a th:href="@{/admin/users}"><i class="bi bi-people"></i> Users</a>
+            <a th:href="@{/admin/audit}"><i class="bi bi-list-ul"></i> Audit Log</a>
+        </div>
+    </aside>
+    <main class="main-content">
+        <th:block th:if="${alert == null}">
+            <div class="alert alert-warning">Alert not found.</div>
+            <a th:href="@{/alerts}" class="btn btn-primary">← Back to alerts</a>
+        </th:block>
+
+        <th:block th:if="${alert != null}">
+            <div class="page-header d-flex justify-content-between align-items-start flex-wrap gap-2">
+                <div>
+                    <h1>Alert #<span th:text="${alert.id}">1</span></h1>
+                    <p class="text-muted mb-0">Detailed view and lifecycle for this alert.</p>
+                </div>
+                <a th:href="@{/alerts}" class="btn btn-primary">← Back to alerts</a>
+            </div>
+
+            <div class="row g-3 mb-4">
+                <div class="col-lg-6">
+                    <div class="card">
+                        <div class="card-header">Traffic data</div>
+                        <div class="card-body">
+                            <th:block th:if="${alert.detection != null and alert.detection.traffic != null}" th:with="t=${alert.detection.traffic}">
+                                <dl class="row mb-0">
+                                    <dt class="col-sm-4">Source IP</dt>
+                                    <dd class="col-sm-8" th:text="${t.srcIp}">—</dd>
+                                    <dt class="col-sm-4">Destination IP</dt>
+                                    <dd class="col-sm-8" th:text="${t.dstIp}">—</dd>
+                                    <dt class="col-sm-4">Protocol</dt>
+                                    <dd class="col-sm-8" th:text="${t.protocol}">—</dd>
+                                    <dt class="col-sm-4">Packet size</dt>
+                                    <dd class="col-sm-8" th:text="${t.packetSize}">—</dd>
+                                    <dt class="col-sm-4">Packet count</dt>
+                                    <dd class="col-sm-8" th:text="${t.packetCount}">—</dd>
+                                    <dt class="col-sm-4">Duration (ms)</dt>
+                                    <dd class="col-sm-8" th:text="${t.durationMs}">—</dd>
+                                    <dt class="col-sm-4">Slice type</dt>
+                                    <dd class="col-sm-8" th:text="${t.sliceType}">—</dd>
+                                </dl>
+                            </th:block>
+                            <p th:if="${alert.detection == null or alert.detection.traffic == null}" class="text-muted mb-0">No traffic data linked to this alert.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="card mb-3" th:if="${alert.detection != null}">
+                        <div class="card-header">Threat information</div>
+                        <div class="card-body">
+                            <p class="mb-1"><strong>Threat type:</strong> <span th:text="${alert.detection.threatType}">—</span></p>
+                            <p class="mb-1"><strong>Severity:</strong>
+                                <span class="badge" th:classappend="${alert.detection.severity != null and alert.detection.severity.toString() == 'CRITICAL' ? 'badge-critical' : (alert.detection.severity != null and alert.detection.severity.toString() == 'HIGH' ? 'badge-high' : (alert.detection.severity != null and alert.detection.severity.toString() == 'MEDIUM' ? 'badge-medium' : 'badge-low'))}" th:text="${alert.detection.severity != null ? alert.detection.severity.toString() : '—'}">—</span>
+                            </p>
+                            <p class="mb-1"><strong>Confidence:</strong> <span th:text="${alert.detection.confidenceScore != null ? #numbers.formatDecimal(alert.detection.confidenceScore, 1, 2) + '%' : '—'}">—</span></p>
+                            <p class="mb-3"><strong>Model used:</strong> <span th:text="${alert.detection.modelUsed}">—</span></p>
+                            <div class="p-3 rounded" style="background:#f8f9fa;border:1px solid #dee2e6">
+                                <strong>Explanation</strong>
+                                <p class="mb-0 mt-2" th:text="${alert.detection.explanation}">—</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card mb-3" th:if="${alert.detection == null}">
+                        <div class="card-header">Threat information</div>
+                        <div class="card-body"><p class="text-muted mb-0">No detection linked to this alert.</p></div>
+                    </div>
+                    <div class="card">
+                        <div class="card-header">Alert management</div>
+                        <div class="card-body">
+                            <p class="mb-2"><span class="badge bg-secondary" th:text="${alert.status != null ? alert.status.toString() : '—'}">OPEN</span></p>
+                            <form class="mb-3" th:action="@{/alerts/{id}/status(id=${alert.id})}" method="post">
+                                <div class="d-flex flex-wrap gap-2">
+                                    <button type="submit" name="status" value="OPEN" class="btn btn-primary btn-sm" th:if="${alert.status == null or alert.status.toString() != 'OPEN'}">Mark OPEN</button>
+                                    <button type="submit" name="status" value="ACKNOWLEDGED" class="btn btn-primary btn-sm" th:if="${alert.status != null and alert.status.toString() == 'OPEN'}">Acknowledge</button>
+                                    <button type="submit" name="status" value="INVESTIGATING" class="btn btn-primary btn-sm" th:if="${alert.status != null and (alert.status.toString() == 'OPEN' or alert.status.toString() == 'ACKNOWLEDGED')}">Investigating</button>
+                                    <button type="submit" name="status" value="RESOLVED" class="btn btn-success btn-sm" th:if="${alert.status == null or alert.status.toString() != 'RESOLVED'}">Resolve</button>
+                                </div>
+                            </form>
+                            <form class="mb-3" th:action="@{/alerts/{id}/assign(id=${alert.id})}" method="post">
+                                <label class="form-label">Assign to analyst</label>
+                                <div class="d-flex gap-2">
+                                    <select class="form-select" name="assignedToId" style="max-width:200px">
+                                        <option value="">Unassigned</option>
+                                        <option th:each="u : ${analysts != null ? analysts : {}}" th:value="${u.id}" th:text="${u.username}" th:selected="${alert.assignedTo != null and alert.assignedTo.id == u.id}"></option>
+                                    </select>
+                                    <button type="submit" class="btn btn-primary btn-sm">Update</button>
+                                </div>
+                            </form>
+                            <form th:action="@{/alerts/{id}/notes(id=${alert.id})}" method="post">
+                                <label class="form-label">Notes</label>
+                                <textarea class="form-control mb-2" name="notes" rows="3" th:text="${alert.notes}"></textarea>
+                                <button type="submit" class="btn btn-primary btn-sm">Save notes</button>
+                            </form>
+                            <div th:if="${successMessage}" class="alert alert-success mt-3 mb-0" th:text="${successMessage}"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">Timeline</div>
+                <div class="card-body">
+                    <div th:if="${auditEntries == null or #lists.isEmpty(auditEntries)}" class="text-muted">No audit entries recorded for this alert yet.</div>
+                    <ul class="list-unstyled mb-0" th:if="${auditEntries != null and !#lists.isEmpty(auditEntries)}">
+                        <li th:each="entry : ${auditEntries}" class="mb-2 pb-2 border-bottom">
+                            <div class="small text-muted" th:text="${entry.timestamp}">—</div>
+                            <strong th:text="${entry.action}">—</strong> <span th:text="${entry.detail}">—</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </th:block>
+    </main>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
