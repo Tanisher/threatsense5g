@@ -29,6 +29,38 @@ def _make_agents(obs_dims: Tuple[int, int, int], device: torch.device) -> List[D
     return [DQNAgent(d, device) for d in obs_dims]
 
 
+def _find_stabilisation_episode(
+    episode_rewards: List[float], window: int = 10, tol_frac: float = 0.05
+) -> int:
+    """
+    Return the 1-indexed episode where the reward first stabilised.
+
+    Heuristic: smallest episode k such that, for every j >= k, the rolling
+    mean of the last ``window`` rewards stays within ``tol`` of the final
+    rolling mean (tol = max(1.0, tol_frac * |final_mean|)). Falls back to
+    the final episode if no such k exists.
+    """
+    n = len(episode_rewards)
+    if n == 0:
+        return 0
+    if n < window:
+        return n
+    arr = np.asarray(episode_rewards, dtype=np.float64)
+    cumsum = np.cumsum(arr)
+    rolling = np.empty(n - window + 1, dtype=np.float64)
+    rolling[0] = cumsum[window - 1] / window
+    for i in range(1, len(rolling)):
+        rolling[i] = (cumsum[i + window - 1] - cumsum[i - 1]) / window
+    final_mean = rolling[-1]
+    tol = max(1.0, tol_frac * abs(final_mean))
+    stable_k = n
+    for i in range(len(rolling)):
+        if np.all(np.abs(rolling[i:] - final_mean) <= tol):
+            stable_k = i + window
+            break
+    return stable_k
+
+
 def _save_episode_reward_plot(episode_rewards: List[float], out_path: Path) -> None:
     """Plot cumulative team reward per episode and write a PNG file."""
     episodes = np.arange(1, len(episode_rewards) + 1, dtype=np.int32)
@@ -118,6 +150,22 @@ def train_ctde(
             f"  Episode {ep:3d}/{NUM_EPISODES} | steps={steps} | "
             f"total_reward={ep_reward:.2f} | epsilon={eps:.4f}"
         )
+
+    if episode_rewards:
+        total_eps = len(episode_rewards)
+        first_r = episode_rewards[0]
+        last_r = episode_rewards[-1]
+        stable_ep = _find_stabilisation_episode(episode_rewards)
+        stable_r = episode_rewards[stable_ep - 1]
+        min_r = float(np.min(episode_rewards))
+        max_r = float(np.max(episode_rewards))
+        print("\n  [Training reward summary]")
+        print(f"    Total episodes run: {total_eps}")
+        print(f"    Episode 1 reward:          {first_r:.2f}")
+        print(f"    Final episode ({total_eps}) reward: {last_r:.2f}")
+        print(f"    First stabilised episode ({stable_ep}) reward: {stable_r:.2f}")
+        print(f"    Min reward across episodes: {min_r:.2f}")
+        print(f"    Max reward across episodes: {max_r:.2f}")
 
     if reward_plot_path is not None:
         _save_episode_reward_plot(episode_rewards, reward_plot_path)
