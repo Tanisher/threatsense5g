@@ -16,7 +16,7 @@ public interface AuditLogRepository extends JpaRepository<AuditLog, Long> {
 
     List<AuditLog> findByEntityTypeAndEntityIdOrderByTimestampAsc(String entityType, Long entityId);
 
-    @Query("SELECT a FROM AuditLog a LEFT JOIN FETCH a.user u " +
+    @Query("SELECT a FROM AuditLog a LEFT JOIN a.user u " +
            "WHERE (:username is null or :username = '' or LOWER(u.username) LIKE LOWER(CONCAT('%', :username, '%'))) " +
            "AND (:action is null or :action = '' or a.action = :action) " +
            "AND (:from is null or a.timestamp >= :from) " +

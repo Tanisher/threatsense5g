@@ -60,17 +60,22 @@ public class TrafficController {
     }
 
     @GetMapping("/{id}")
-    public String showTrafficDetail(@PathVariable Long id, Model model) {
-        NetworkTraffic traffic = trafficIngestionService.getTrafficById(id);
-        model.addAttribute("traffic", traffic);
-        return "traffic/detail";
+    public String showTrafficDetail(@PathVariable Long id,
+                                    Model model,
+                                    RedirectAttributes redirectAttributes) {
+        try {
+            NetworkTraffic traffic = trafficIngestionService.getTrafficById(id);
+            model.addAttribute("traffic", traffic);
+            return "traffic/detail";
+        } catch (java.util.NoSuchElementException ex) {
+            redirectAttributes.addFlashAttribute("error", "Traffic record not found.");
+            return "redirect:/traffic/history";
+        }
     }
 
     @GetMapping
     public String listBySource(@RequestParam("source") String source, Model model) {
-        List<NetworkTraffic> records =
-                trafficIngestionService.getRecentTraffic(Integer.MAX_VALUE);
-        // In a real implementation we might filter by source; keeping simple for now.
+        List<NetworkTraffic> records = trafficIngestionService.getTrafficByUploadSource(source);
         model.addAttribute("records", records);
         model.addAttribute("source", source);
         return "traffic/list";

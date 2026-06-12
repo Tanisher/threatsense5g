@@ -49,7 +49,7 @@
                     <tr th:each="name : ${reports}">
                         <td th:text="${name}">report_2024-01-01_2024-01-31_123.pdf</td>
                         <td>
-                            <span th:with="parts=${#strings.split(name, '_')}" th:if="${#lists.size(parts) >= 3}" th:text="${parts[1] + ' to ' + parts[2]}">—</span>
+                            <span th:with="parts=${#strings.listSplit(name, '_')}" th:if="${parts != null and #lists.size(parts) >= 3}" th:text="${parts[1] + ' to ' + parts[2]}">—</span>
                         </td>
                         <td class="text-end">
                             <a th:href="@{/reports/download/{fn}(fn=${name})}" class="btn btn-primary btn-sm" download>Download</a>

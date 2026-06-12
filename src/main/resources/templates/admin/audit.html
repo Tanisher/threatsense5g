@@ -22,8 +22,14 @@
                     <label class="form-label">Action</label>
                     <select class="form-select" name="action">
                         <option value="">All</option>
+                        <option value="LOGIN" th:selected="${filterAction == 'LOGIN'}">LOGIN</option>
+                        <option value="LOGOUT" th:selected="${filterAction == 'LOGOUT'}">LOGOUT</option>
                         <option value="USER_CREATED" th:selected="${filterAction == 'USER_CREATED'}">USER_CREATED</option>
                         <option value="USER_TOGGLE_ACTIVE" th:selected="${filterAction == 'USER_TOGGLE_ACTIVE'}">USER_TOGGLE_ACTIVE</option>
+                        <option value="ALERT_STATUS_UPDATE" th:selected="${filterAction == 'ALERT_STATUS_UPDATE'}">ALERT_STATUS_UPDATE</option>
+                        <option value="ALERT_ASSIGN" th:selected="${filterAction == 'ALERT_ASSIGN'}">ALERT_ASSIGN</option>
+                        <option value="ALERT_NOTES_UPDATE" th:selected="${filterAction == 'ALERT_NOTES_UPDATE'}">ALERT_NOTES_UPDATE</option>
+                        <option value="ALERT_CREATED_FROM_THREAT" th:selected="${filterAction == 'ALERT_CREATED_FROM_THREAT'}">ALERT_CREATED_FROM_THREAT</option>
                     </select>
                 </div>
                 <div class="col-md-2">

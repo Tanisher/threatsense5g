@@ -3,6 +3,8 @@ package com.threatsense.service;
 import com.threatsense.model.AuditLog;
 import com.threatsense.model.User;
 import com.threatsense.repository.AuditLogRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -11,6 +13,8 @@ import java.time.LocalDateTime;
 
 @Service
 public class AuditService {
+
+    private static final Logger logger = LoggerFactory.getLogger(AuditService.class);
 
     private final AuditLogRepository auditLogRepository;
 
@@ -32,6 +36,10 @@ public class AuditService {
     }
 
     public void log(User user, String action, String entityType, Long entityId, String detail) {
+        if (user == null) {
+            logger.warn("Skipping audit log for action {}: user is null", action);
+            return;
+        }
         AuditLog auditLog = AuditLog.builder()
                 .user(user)
                 .action(action)

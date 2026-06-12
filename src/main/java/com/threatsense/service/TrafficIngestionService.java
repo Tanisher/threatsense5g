@@ -153,6 +153,13 @@ public class TrafficIngestionService {
         ).getContent();
     }
 
+    public List<NetworkTraffic> getTrafficByUploadSource(String uploadSource) {
+        if (uploadSource == null || uploadSource.isBlank()) {
+            return Collections.emptyList();
+        }
+        return networkTrafficRepository.findByUploadSourceOrderByTimestampDesc(uploadSource);
+    }
+
     private String getValue(String[] row, Map<String, Integer> indexMap, String column) {
         Integer idx = indexMap.get(column);
         if (idx == null || idx >= row.length) {

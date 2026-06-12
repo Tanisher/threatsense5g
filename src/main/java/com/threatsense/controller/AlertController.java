@@ -100,10 +100,10 @@ public class AlertController {
     @PostMapping("/{id}/status")
     public String updateStatus(@PathVariable Long id,
                                @RequestParam("status") String status,
+                               @AuthenticationPrincipal UserDetails principal,
                                RedirectAttributes redirectAttributes) {
         AlertStatus newStatus = AlertStatus.valueOf(status);
-        // In a real app, resolve current user id from security context
-        Long currentUserId = null;
+        Long currentUserId = resolveCurrentUserId(principal);
         alertService.updateStatus(id, newStatus, currentUserId);
         redirectAttributes.addFlashAttribute("successMessage", "Alert status updated.");
         return "redirect:/alerts/" + id;
@@ -112,8 +112,9 @@ public class AlertController {
     @PostMapping("/{id}/assign")
     public String assignAlert(@PathVariable Long id,
                               @RequestParam("assignedToId") Long analystId,
+                              @AuthenticationPrincipal UserDetails principal,
                               RedirectAttributes redirectAttributes) {
-        Long currentUserId = null;
+        Long currentUserId = resolveCurrentUserId(principal);
         alertService.assignAlert(id, analystId, currentUserId);
         redirectAttributes.addFlashAttribute("successMessage", "Alert assignment updated.");
         return "redirect:/alerts/" + id;
@@ -122,11 +123,20 @@ public class AlertController {
     @PostMapping("/{id}/notes")
     public String updateNotes(@PathVariable Long id,
                               @RequestParam("notes") String notes,
+                              @AuthenticationPrincipal UserDetails principal,
                               RedirectAttributes redirectAttributes) {
-        Long currentUserId = null;
+        Long currentUserId = resolveCurrentUserId(principal);
         alertService.addNotes(id, notes, currentUserId);
         redirectAttributes.addFlashAttribute("successMessage", "Alert notes updated.");
         return "redirect:/alerts/" + id;
+    }
+
+    private Long resolveCurrentUserId(UserDetails principal) {
+        if (principal == null) {
+            return null;
+        }
+        User user = userRepository.findByUsername(principal.getUsername());
+        return user != null ? user.getId() : null;
     }
 
     @GetMapping("/export")
